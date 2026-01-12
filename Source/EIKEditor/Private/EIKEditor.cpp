@@ -444,9 +444,9 @@ void FEIKEditorModule::OnPackageAndDeploySelected()
 #if PLATFORM_WINDOWS
     UEIKSettings* Settings = GetMutableDefault<UEIKSettings>();
     FEOSArtifactSettings ArtifactSettings;
-    if (Settings->OneClick_ArtifactId.IsEmpty() || Settings->OneClick_ClientId.IsEmpty() || Settings->OneClick_ClientSecret.IsEmpty() || Settings->OneClick_OrganizationId.IsEmpty() || Settings->OneClick_ProductId.IsEmpty() )
+    if (Settings->OneClick_ArtifactId.IsEmpty() || Settings->OneClick_ClientId.IsEmpty() || Settings->OneClick_ClientSecret.IsEmpty() || Settings->OneClick_OrganizationId.IsEmpty() || Settings->OneClick_ProductId.IsEmpty() || Settings->OneClick_CloudDirOverride.IsEmpty())
     {
-        FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BuildConfigurationNotSet", "Please set the Artifact ID, Client ID, Client Secret, Organization ID, and Product ID in the settings. Either the settings are empty or not saved."));
+        FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BuildConfigurationNotSet", "Please set the Artifact ID, Client ID, Client Secret, Organization ID, and Product ID in the settings. Eeither the settings are empty or not saved."));
         return;
     }
     // Create the notification item
