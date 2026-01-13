@@ -148,15 +148,35 @@ FEIK_NotificationId UEIK_LobbySubsystem::EIK_Lobby_AddNotifyLobbyInviteRejected(
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			// Fix #1: Add null check for SessionInterfacePtr to prevent null pointer dereference
+			if (!EOSRef->SessionInterfacePtr)
+			{
+				return FEIK_NotificationId();
+			}
+
 			EOS_Lobby_AddNotifyLobbyInviteRejectedOptions Options = {};
 			Options.ApiVersion = EOS_LOBBY_ADDNOTIFYLOBBYINVITEREJECTED_API_LATEST;
 			return EOS_Lobby_AddNotifyLobbyInviteRejected(EOSRef->SessionInterfacePtr->LobbyHandle, &Options, this, [](const EOS_Lobby_LobbyInviteRejectedCallbackInfo* Data)
 			{
 				if (UEIK_LobbySubsystem* CallbackObj = static_cast<UEIK_LobbySubsystem*>(Data->ClientData))
 				{
-					AsyncTask(ENamedThreads::GameThread, [CallbackObj, Data]()
+					// Fix #3: Copy EOS callback data to local variables before AsyncTask to prevent use-after-free
+					// The Data pointer is only valid during this callback and will be freed by EOS SDK
+					FEIK_ProductUserId LocalUserIdCopy = FEIK_ProductUserId(Data->LocalUserId);
+					FEIK_ProductUserId TargetUserIdCopy = FEIK_ProductUserId(Data->TargetUserId);
+					FEIK_LobbyId LobbyIdCopy = FEIK_LobbyId(Data->LobbyId);
+					FString InviteIdCopy = UTF8_TO_TCHAR(Data->InviteId);
+
+					// Fix #4: Use TWeakObjectPtr to safely handle object lifetime
+					TWeakObjectPtr<UEIK_LobbySubsystem> WeakCallbackObj(CallbackObj);
+
+					AsyncTask(ENamedThreads::GameThread, [WeakCallbackObj, LocalUserIdCopy, TargetUserIdCopy, LobbyIdCopy, InviteIdCopy]()
 					{
-						CallbackObj->OnLobbyInviteRejected.ExecuteIfBound(Data->LocalUserId, Data->TargetUserId, Data->LobbyId, Data->InviteId);
+						// Check if the subsystem object still exists before executing callback
+						if (WeakCallbackObj.IsValid())
+						{
+							WeakCallbackObj->OnLobbyInviteRejected.ExecuteIfBound(LocalUserIdCopy, TargetUserIdCopy, LobbyIdCopy, InviteIdCopy);
+						}
 					});
 				}
 			});
