@@ -2160,7 +2160,7 @@ void FEOSVoiceChatUser::OnChannelDisconnected(const EOS_RTC_DisconnectedCallback
 			{
 				Objects.Add(*Itr);
 			}
-			if(Objects[0])
+			if(Objects.Num() > 0 && Objects[0])
 			{
 				Objects[0]->OnChannelExited.Broadcast(ChannelName, EOS_EResult_ToString(CallbackInfo->ResultCode));
 			}
@@ -2277,7 +2277,7 @@ void FEOSVoiceChatUser::OnChannelParticipantStatusChanged(const EOS_RTC_Particip
 				{
 					Objects.Add(*Itr);
 				}
-				if(Objects[0])
+				if(Objects.Num() > 0 && Objects[0])
 				{
 					Objects[0]->OnPlayerAdded.Broadcast(ChannelName, PlayerName);
 				}
@@ -2306,7 +2306,7 @@ void FEOSVoiceChatUser::OnChannelParticipantStatusChanged(const EOS_RTC_Particip
 			{
 				Objects.Add(*Itr);
 			}
-			if(Objects[0])
+			if(Objects.Num() > 0 && Objects[0])
 			{
 				Objects[0]->OnPlayerRemoved.Broadcast(ChannelSession->ChannelName, PlayerName);
 			}

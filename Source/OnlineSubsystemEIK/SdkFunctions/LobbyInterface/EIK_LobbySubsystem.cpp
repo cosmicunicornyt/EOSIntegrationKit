@@ -17,6 +17,7 @@ FEIK_NotificationId UEIK_LobbySubsystem::EIK_Lobby_AddNotifyJoinLobbyAccepted(FE
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return FEIK_NotificationId(); }
 			EOS_Lobby_AddNotifyJoinLobbyAcceptedOptions Options = {};
 			Options.ApiVersion = EOS_LOBBY_ADDNOTIFYJOINLOBBYACCEPTED_API_LATEST;
 			return EOS_Lobby_AddNotifyJoinLobbyAccepted(EOSRef->SessionInterfacePtr->LobbyHandle, &Options, this, [](const EOS_Lobby_JoinLobbyAcceptedCallbackInfo* Data)
@@ -37,6 +38,7 @@ void UEIK_LobbySubsystem::EIK_Lobby_RemoveNotifyJoinLobbyAccepted(FEIK_Notificat
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return; }
 			EOS_Lobby_RemoveNotifyJoinLobbyAccepted(EOSRef->SessionInterfacePtr->LobbyHandle, InId.GetValueAsEosType());
 		}
 	}
@@ -50,6 +52,7 @@ FEIK_NotificationId UEIK_LobbySubsystem::EIK_Lobby_AddNotifyLeaveLobbyRequested(
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return FEIK_NotificationId(); }
 			EOS_Lobby_AddNotifyLeaveLobbyRequestedOptions Options = {};
 			Options.ApiVersion = EOS_LOBBY_ADDNOTIFYLEAVELOBBYREQUESTED_API_LATEST;
 			return EOS_Lobby_AddNotifyLeaveLobbyRequested(EOSRef->SessionInterfacePtr->LobbyHandle, &Options, this, [](const EOS_Lobby_LeaveLobbyRequestedCallbackInfo* Data)
@@ -70,6 +73,7 @@ void UEIK_LobbySubsystem::EIK_Lobby_RemoveNotifyLeaveLobbyRequested(FEIK_Notific
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return; }
 			EOS_Lobby_RemoveNotifyLeaveLobbyRequested(EOSRef->SessionInterfacePtr->LobbyHandle, InId.GetValueAsEosType());
 		}
 	}
@@ -83,6 +87,7 @@ FEIK_NotificationId UEIK_LobbySubsystem::EIK_Lobby_AddNotifyLobbyInviteAccepted(
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return FEIK_NotificationId(); }
 			EOS_Lobby_AddNotifyLobbyInviteAcceptedOptions Options = {};
 			Options.ApiVersion = EOS_LOBBY_ADDNOTIFYLOBBYINVITEACCEPTED_API_LATEST;
 			return EOS_Lobby_AddNotifyLobbyInviteAccepted(EOSRef->SessionInterfacePtr->LobbyHandle, &Options, this, [](const EOS_Lobby_LobbyInviteAcceptedCallbackInfo* Data)
@@ -103,6 +108,7 @@ void UEIK_LobbySubsystem::EIK_Lobby_RemoveNotifyLobbyInviteAccepted(FEIK_Notific
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return; }
 			EOS_Lobby_RemoveNotifyLobbyInviteAccepted(EOSRef->SessionInterfacePtr->LobbyHandle, InId.GetValueAsEosType());
 		}
 	}
@@ -115,6 +121,7 @@ FEIK_NotificationId UEIK_LobbySubsystem::EIK_Lobby_AddNotifyLobbyInviteReceived(
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return FEIK_NotificationId(); }
 			EOS_Lobby_AddNotifyLobbyInviteReceivedOptions Options = {};
 			Options.ApiVersion = EOS_LOBBY_ADDNOTIFYLOBBYINVITERECEIVED_API_LATEST;
 			return EOS_Lobby_AddNotifyLobbyInviteReceived(EOSRef->SessionInterfacePtr->LobbyHandle, &Options, this, [](const EOS_Lobby_LobbyInviteReceivedCallbackInfo* Data)
@@ -135,6 +142,7 @@ void UEIK_LobbySubsystem::EIK_Lobby_RemoveNotifyLobbyInviteReceived(FEIK_Notific
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return; }
 			EOS_Lobby_RemoveNotifyLobbyInviteReceived(EOSRef->SessionInterfacePtr->LobbyHandle, InId.GetValueAsEosType());
 		}
 	}
@@ -191,6 +199,7 @@ void UEIK_LobbySubsystem::EIK_Lobby_RemoveNotifyLobbyInviteRejected(FEIK_Notific
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return; }
 			EOS_Lobby_RemoveNotifyLobbyInviteRejected(EOSRef->SessionInterfacePtr->LobbyHandle, InId.GetValueAsEosType());
 		}
 	}
@@ -202,6 +211,7 @@ void UEIK_LobbySubsystem::EIK_Lobby_RemoveNotifyLobbyMemberStatusReceived(FEIK_N
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return; }
 			EOS_Lobby_RemoveNotifyLobbyMemberStatusReceived(EOSRef->SessionInterfacePtr->LobbyHandle, InId.GetValueAsEosType());
 		}
 	}
@@ -213,6 +223,7 @@ void UEIK_LobbySubsystem::EIK_Lobby_RemoveNotifyLobbyMemberUpdateReceived(FEIK_N
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return; }
 			EOS_Lobby_RemoveNotifyLobbyMemberUpdateReceived(EOSRef->SessionInterfacePtr->LobbyHandle, InId.GetValueAsEosType());
 		}
 	}
@@ -224,6 +235,7 @@ void UEIK_LobbySubsystem::EIK_Lobby_RemoveNotifyLobbyUpdateReceived(FEIK_Notific
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return; }
 			EOS_Lobby_RemoveNotifyLobbyUpdateReceived(EOSRef->SessionInterfacePtr->LobbyHandle, InId.GetValueAsEosType());
 		}
 	}
@@ -235,6 +247,7 @@ void UEIK_LobbySubsystem::EIK_Lobby_RemoveNotifyRTCRoomConnectionChanged(FEIK_No
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return; }
 			EOS_Lobby_RemoveNotifyRTCRoomConnectionChanged(EOSRef->SessionInterfacePtr->LobbyHandle, InId.GetValueAsEosType());
 		}
 	}
@@ -246,6 +259,7 @@ void UEIK_LobbySubsystem::EIK_Lobby_RemoveNotifySendLobbyNativeInviteRequested(F
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return; }
 			EOS_Lobby_RemoveNotifySendLobbyNativeInviteRequested(EOSRef->SessionInterfacePtr->LobbyHandle, InId.GetValueAsEosType());
 		}
 	}
@@ -1051,15 +1065,23 @@ FEIK_NotificationId UEIK_LobbySubsystem::EIK_Lobby_AddNotifyLobbyMemberStatusRec
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return FEIK_NotificationId(); }
 			EOS_Lobby_AddNotifyLobbyMemberStatusReceivedOptions Options = {};
 			Options.ApiVersion = EOS_LOBBY_ADDNOTIFYLOBBYMEMBERSTATUSRECEIVED_API_LATEST;
 			return EOS_Lobby_AddNotifyLobbyMemberStatusReceived(EOSRef->SessionInterfacePtr->LobbyHandle, &Options, this, [](const EOS_Lobby_LobbyMemberStatusReceivedCallbackInfo* Data)
 			{
 				if (UEIK_LobbySubsystem* CallbackObj = static_cast<UEIK_LobbySubsystem*>(Data->ClientData))
 				{
-					AsyncTask(ENamedThreads::GameThread, [CallbackObj, Data]()
+					FEIK_ProductUserId TargetUserIdCopy(Data->TargetUserId);
+					FEIK_LobbyId LobbyIdCopy(Data->LobbyId);
+					EEIK_ELobbyMemberStatus StatusCopy = static_cast<EEIK_ELobbyMemberStatus>(Data->CurrentStatus);
+					TWeakObjectPtr<UEIK_LobbySubsystem> WeakCallbackObj(CallbackObj);
+					AsyncTask(ENamedThreads::GameThread, [WeakCallbackObj, TargetUserIdCopy, LobbyIdCopy, StatusCopy]()
 					{
-						CallbackObj->OnLobbyMemberStatusReceived.ExecuteIfBound(Data->TargetUserId, Data->LobbyId, static_cast<EEIK_ELobbyMemberStatus>(Data->CurrentStatus));
+						if (WeakCallbackObj.IsValid())
+						{
+							WeakCallbackObj->OnLobbyMemberStatusReceived.ExecuteIfBound(TargetUserIdCopy, LobbyIdCopy, StatusCopy);
+						}
 					});
 				}
 			});
@@ -1077,15 +1099,22 @@ FEIK_NotificationId UEIK_LobbySubsystem::EIK_Lobby_AddNotifyLobbyMemberUpdateRec
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return FEIK_NotificationId(); }
 			EOS_Lobby_AddNotifyLobbyMemberUpdateReceivedOptions Options = {};
 			Options.ApiVersion = EOS_LOBBY_ADDNOTIFYLOBBYMEMBERUPDATERECEIVED_API_LATEST;
 			return EOS_Lobby_AddNotifyLobbyMemberUpdateReceived(EOSRef->SessionInterfacePtr->LobbyHandle, &Options, this, [](const EOS_Lobby_LobbyMemberUpdateReceivedCallbackInfo* Data)
 			{
 				if (UEIK_LobbySubsystem* CallbackObj = static_cast<UEIK_LobbySubsystem*>(Data->ClientData))
 				{
-					AsyncTask(ENamedThreads::GameThread, [CallbackObj, Data]()
+					FEIK_ProductUserId TargetUserIdCopy(Data->TargetUserId);
+					FEIK_LobbyId LobbyIdCopy(Data->LobbyId);
+					TWeakObjectPtr<UEIK_LobbySubsystem> WeakCallbackObj(CallbackObj);
+					AsyncTask(ENamedThreads::GameThread, [WeakCallbackObj, TargetUserIdCopy, LobbyIdCopy]()
 					{
-						CallbackObj->OnLobbyMemberUpdateReceived.ExecuteIfBound(Data->TargetUserId, Data->LobbyId);
+						if (WeakCallbackObj.IsValid())
+						{
+							WeakCallbackObj->OnLobbyMemberUpdateReceived.ExecuteIfBound(TargetUserIdCopy, LobbyIdCopy);
+						}
 					});
 				}
 			});
@@ -1103,15 +1132,21 @@ FEIK_NotificationId UEIK_LobbySubsystem::EIK_Lobby_AddNotifyLobbyUpdateReceived(
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return FEIK_NotificationId(); }
 			EOS_Lobby_AddNotifyLobbyUpdateReceivedOptions Options = {};
 			Options.ApiVersion = EOS_LOBBY_ADDNOTIFYLOBBYUPDATERECEIVED_API_LATEST;
 			return EOS_Lobby_AddNotifyLobbyUpdateReceived(EOSRef->SessionInterfacePtr->LobbyHandle, &Options, this, [](const EOS_Lobby_LobbyUpdateReceivedCallbackInfo* Data)
 			{
 				if (UEIK_LobbySubsystem* CallbackObj = static_cast<UEIK_LobbySubsystem*>(Data->ClientData))
 				{
-					AsyncTask(ENamedThreads::GameThread, [CallbackObj, Data]()
+					FEIK_LobbyId LobbyIdCopy(Data->LobbyId);
+					TWeakObjectPtr<UEIK_LobbySubsystem> WeakCallbackObj(CallbackObj);
+					AsyncTask(ENamedThreads::GameThread, [WeakCallbackObj, LobbyIdCopy]()
 					{
-						CallbackObj->OnLobbyUpdateReceived.ExecuteIfBound(Data->LobbyId);
+						if (WeakCallbackObj.IsValid())
+						{
+							WeakCallbackObj->OnLobbyUpdateReceived.ExecuteIfBound(LobbyIdCopy);
+						}
 					});
 				}
 			});
@@ -1128,16 +1163,24 @@ FEIK_NotificationId UEIK_LobbySubsystem::EIK_Lobby_AddNotifyRTCRoomConnectionCha
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return FEIK_NotificationId(); }
 			EOS_Lobby_AddNotifyRTCRoomConnectionChangedOptions Options = {};
 			Options.ApiVersion = EOS_LOBBY_ADDNOTIFYRTCROOMCONNECTIONCHANGED_API_LATEST;
 			return EOS_Lobby_AddNotifyRTCRoomConnectionChanged(EOSRef->SessionInterfacePtr->LobbyHandle, &Options, this, [](const EOS_Lobby_RTCRoomConnectionChangedCallbackInfo* Data)
 			{
 				if (UEIK_LobbySubsystem* CallbackObj = static_cast<UEIK_LobbySubsystem*>(Data->ClientData))
 				{
-					AsyncTask(ENamedThreads::GameThread, [CallbackObj, Data]()
+					FEIK_LobbyId LobbyIdCopy(Data->LobbyId);
+					FEIK_ProductUserId LocalUserIdCopy(Data->LocalUserId);
+					bool bIsConnected = Data->bIsConnected == EOS_TRUE;
+					EEIK_Result DisconnectReasonCopy = static_cast<EEIK_Result>(Data->DisconnectReason);
+					TWeakObjectPtr<UEIK_LobbySubsystem> WeakCallbackObj(CallbackObj);
+					AsyncTask(ENamedThreads::GameThread, [WeakCallbackObj, LobbyIdCopy, LocalUserIdCopy, bIsConnected, DisconnectReasonCopy]()
 					{
-						bool bResult = true;
-						CallbackObj->OnRTCRoomConnectionChanged.ExecuteIfBound(Data->LobbyId, Data->LocalUserId, bResult, static_cast<EEIK_Result>(Data->DisconnectReason));
+						if (WeakCallbackObj.IsValid())
+						{
+							WeakCallbackObj->OnRTCRoomConnectionChanged.ExecuteIfBound(LobbyIdCopy, LocalUserIdCopy, bIsConnected, DisconnectReasonCopy);
+						}
 					});
 				}
 			});
@@ -1155,15 +1198,25 @@ FEIK_NotificationId UEIK_LobbySubsystem::EIK_Lobby_AddNotifySendLobbyNativeInvit
 	{
 		if (FOnlineSubsystemEOS* EOSRef = static_cast<FOnlineSubsystemEOS*>(OnlineSub))
 		{
+			if (!EOSRef->SessionInterfacePtr) { return FEIK_NotificationId(); }
 			EOS_Lobby_AddNotifySendLobbyNativeInviteRequestedOptions Options = {};
 			Options.ApiVersion = EOS_LOBBY_ADDNOTIFYSENDLOBBYNATIVEINVITEREQUESTED_API_LATEST;
 			return EOS_Lobby_AddNotifySendLobbyNativeInviteRequested(EOSRef->SessionInterfacePtr->LobbyHandle, &Options, this, [](const EOS_Lobby_SendLobbyNativeInviteRequestedCallbackInfo* Data)
 			{
 				if (UEIK_LobbySubsystem* CallbackObj = static_cast<UEIK_LobbySubsystem*>(Data->ClientData))
 				{
-					AsyncTask(ENamedThreads::GameThread, [CallbackObj, Data]()
+					FEIK_UI_EventId UiEventIdCopy = Data->UiEventId;
+					FEIK_ProductUserId LocalUserIdCopy(Data->LocalUserId);
+					FString TargetNativeAccountTypeCopy = UTF8_TO_TCHAR(Data->TargetNativeAccountType);
+					FString TargetUserNativeAccountIdCopy = UTF8_TO_TCHAR(Data->TargetUserNativeAccountId);
+					FEIK_LobbyId LobbyIdCopy(Data->LobbyId);
+					TWeakObjectPtr<UEIK_LobbySubsystem> WeakCallbackObj(CallbackObj);
+					AsyncTask(ENamedThreads::GameThread, [WeakCallbackObj, UiEventIdCopy, LocalUserIdCopy, TargetNativeAccountTypeCopy, TargetUserNativeAccountIdCopy, LobbyIdCopy]()
 					{
-						CallbackObj->OnSendLobbyNativeInvite.ExecuteIfBound(Data->UiEventId, Data->LocalUserId, Data->TargetUserNativeAccountId, Data->TargetNativeAccountType, Data->LobbyId);
+						if (WeakCallbackObj.IsValid())
+						{
+							WeakCallbackObj->OnSendLobbyNativeInvite.ExecuteIfBound(UiEventIdCopy, LocalUserIdCopy, TargetNativeAccountTypeCopy, TargetUserNativeAccountIdCopy, LobbyIdCopy);
+						}
 					});
 				}
 			});
