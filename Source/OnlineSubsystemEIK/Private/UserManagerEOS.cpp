@@ -1374,9 +1374,10 @@ void FUserManagerEOS::RefreshConnectLogin(int32 LocalUserNum)
 	}
 
 	const FEOSSettings Settings = UEIKSettings::GetSettings();
-	if (true)
+	const EOS_EpicAccountId AccountId = UserNumToAccountIdMap[LocalUserNum];
+	const bool bHasValidEpicAccountId = EOS_EpicAccountId_IsValid(AccountId) == EOS_TRUE;
+	if (Settings.bUseEAS && bHasValidEpicAccountId)
 	{
-		EOS_EpicAccountId AccountId = UserNumToAccountIdMap[LocalUserNum];
 		EOS_Auth_Token* AuthToken = nullptr;
 		EOS_Auth_CopyUserAuthTokenOptions CopyOptions = { };
 		CopyOptions.ApiVersion = EOS_AUTH_COPYUSERAUTHTOKEN_API_LATEST;
@@ -2075,17 +2076,20 @@ void FUserManagerEOS::AddLocalUser(int32 LocalUserNum, EOS_EpicAccountId EpicAcc
 	NetIdStringToRecentPlayerListMap.Emplace(NetId, RecentPlayersList);
 
 	// Get auth token info
-	EOS_Auth_Token* AuthToken = nullptr;
-	EOS_Auth_CopyUserAuthTokenOptions Options = { };
-	Options.ApiVersion = EOS_AUTH_COPYUSERAUTHTOKEN_API_LATEST;
-
-	EOS_EResult CopyResult = EOS_Auth_CopyUserAuthToken(EOSSubsystem->AuthHandle, &Options, EpicAccountId, &AuthToken);
-	if (CopyResult == EOS_EResult::EOS_Success)
+	if (EOS_EpicAccountId_IsValid(EpicAccountId) == EOS_TRUE)
 	{
-		UserAccountRef->SetAuthAttribute(AUTH_ATTR_ID_TOKEN, AuthToken->AccessToken);
-		EOS_Auth_Token_Release(AuthToken);
+		EOS_Auth_Token* AuthToken = nullptr;
+		EOS_Auth_CopyUserAuthTokenOptions Options = { };
+		Options.ApiVersion = EOS_AUTH_COPYUSERAUTHTOKEN_API_LATEST;
 
-		UpdateUserInfo(UserAccountRef, EpicAccountId, EpicAccountId);
+		EOS_EResult CopyResult = EOS_Auth_CopyUserAuthToken(EOSSubsystem->AuthHandle, &Options, EpicAccountId, &AuthToken);
+		if (CopyResult == EOS_EResult::EOS_Success)
+		{
+			UserAccountRef->SetAuthAttribute(AUTH_ATTR_ID_TOKEN, AuthToken->AccessToken);
+			EOS_Auth_Token_Release(AuthToken);
+
+			UpdateUserInfo(UserAccountRef, EpicAccountId, EpicAccountId);
+		}
 	}
 }
 
