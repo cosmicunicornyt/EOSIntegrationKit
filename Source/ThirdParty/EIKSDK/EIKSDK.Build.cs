@@ -115,11 +115,11 @@ public class EIKSDK : ModuleRules
 			string PluginDir = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", ".."));
 			string DLLFileName = "EOSSDK-Win64-Shipping.dll";
 			string DLLSourcePath = Path.Combine(PluginDir, "ThirdParty", "EIKSDK", "Bin", DLLFileName);
-			string DLLTargetPath = "$(BinaryOutputDir)/" + DLLFileName;
+			string DLLTargetPath = "$(PluginDir)/Binaries/Win64/" + DLLFileName;
 
 			string LIBFileName = "EOSSDK-Win64-Shipping.lib";
 			string LIBSourcePath = Path.Combine(ModuleDirectory, "Lib", LIBFileName);
-			string LIBTargetPath = "$(BinaryOutputDir)/" + LIBFileName;
+			string LIBTargetPath = "$(PluginDir)/Binaries/Win64/" + LIBFileName;
 
 			if (File.Exists(DLLSourcePath))
 			{

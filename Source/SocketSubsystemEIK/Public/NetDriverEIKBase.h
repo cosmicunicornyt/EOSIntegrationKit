@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "IpNetDriver.h"
 #include "OnlineBeacon.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "NetDriverEIKBase.generated.h"
 
 class ISocketSubsystem;

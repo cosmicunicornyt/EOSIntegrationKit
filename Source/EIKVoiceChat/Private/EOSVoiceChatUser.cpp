@@ -1023,22 +1023,6 @@ bool FEOSVoiceChatUser::AddLobbyRoom(const FString& LobbyId)
 		ApplyAudioInputOptions(); // Reapply audio options based on CVar properties
 
 		BindChannelCallbacks(ChannelSession);
-		ApplySendingOptions(ChannelSession);
-
-		// Call UpdateReceiving once to set the default receiving state for all participants
-		{
-			EOS_RTCAudio_UpdateReceivingOptions UpdateReceivingOptions = {};
-			UpdateReceivingOptions.ApiVersion = EOS_RTCAUDIO_UPDATERECEIVING_API_LATEST;
-			static_assert(EOS_RTCAUDIO_UPDATERECEIVING_API_LATEST == 1, "EOS_RTCAudio_UpdateReceivingOptions updated, check new fields");
-			UpdateReceivingOptions.LocalUserId = LoginSession.LocalUserProductUserId;
-			UpdateReceivingOptions.RoomName = Utf8RoomName;
-			UpdateReceivingOptions.ParticipantId = nullptr;
-			UpdateReceivingOptions.bAudioEnabled = ChannelSession.bIsNotListening ? EOS_FALSE : EOS_TRUE;
-
-			CSV_SCOPED_TIMING_STAT_EXCLUSIVE(EOSVoiceChat);
-			QUICK_SCOPE_CYCLE_COUNTER(EOS_RTC_UpdateReceiving);
-			EOS_RTCAudio_UpdateReceiving(EOS_RTC_GetAudioInterface(GetRtcInterface()), &UpdateReceivingOptions, this, &FEOSVoiceChatUser::OnUpdateReceivingAudioStatic);
-		}
 		
 		// Get the current lobby connectedness.
 		EOS_Lobby_IsRTCRoomConnectedOptions IsRoomConnectedOptions = {};
@@ -1062,6 +1046,16 @@ bool FEOSVoiceChatUser::AddLobbyRoom(const FString& LobbyId)
 		FChannelParticipant& ChannelParticipant = ChannelSession.Participants.Add(ChannelSession.PlayerName);
 		ChannelParticipant.PlayerName = ChannelSession.PlayerName;
 		OnVoiceChatPlayerAddedDelegate.Broadcast(ChannelSession.ChannelName, ChannelSession.PlayerName);
+
+		if (ChannelSession.bLobbyChannelConnected)
+		{
+			ApplySendingOptions(ChannelSession);
+			ApplyReceivingOptions(ChannelSession);
+		}
+		else
+		{
+			EOSVOICECHATUSER_LOG(Verbose, TEXT("AddLobbyRoom LobbyId=[%s] ChannelName=[%s] waiting for RTC room connection before applying audio state"), *LobbyId, *ChannelSession.ChannelName);
+		}
 
 		// TODO Participant query
 
@@ -1818,6 +1812,7 @@ void FEOSVoiceChatUser::OnJoinRoom(const EOS_RTC_JoinRoomCallbackInfo* CallbackI
 				OnVoiceChatPlayerAddedDelegate.Broadcast(ChannelSession->ChannelName, ChannelSession->PlayerName);
 
 				ApplySendingOptions(*ChannelSession);
+				ApplyReceivingOptions(*ChannelSession);
 			}
 			else
 			{
@@ -2079,7 +2074,6 @@ void FEOSVoiceChatUser::OnUpdateSendingAudio(const EOS_RTCAudio_UpdateSendingCal
 	check(IsInitialized());
 
 	FString ChannelName = UTF8_TO_TCHAR(CallbackInfo->RoomName);
-	const bool bAudioEnabled = EOS_TRUE;//CallbackInfo->AudioStatus == EOS_ERTCAudioStatus::EOS_RTCAS_Enabled;
 
 	if (CallbackInfo->ResultCode == EOS_EResult::EOS_Success)
 	{
@@ -2087,6 +2081,7 @@ void FEOSVoiceChatUser::OnUpdateSendingAudio(const EOS_RTCAudio_UpdateSendingCal
 
 		if (FChannelSession* ChannelSession = LoginSession.ChannelSessions.Find(ChannelName))
 		{
+			const bool bAudioEnabled = ChannelSession->DesiredSendingState.bAudioEnabled;
 			if (bAudioEnabled != ChannelSession->ActiveSendingState.bAudioEnabled)
 			{
 				ChannelSession->ActiveSendingState.bAudioEnabled = bAudioEnabled;
@@ -2207,6 +2202,7 @@ void FEOSVoiceChatUser::OnLobbyChannelConnectionChanged(const EOS_Lobby_RTCRoomC
 	{
 		EOSVOICECHATUSER_LOG(VeryVerbose, TEXT("OnLobbyChannelConnectionChanged LocalUserId=[%s] LobbyId=[%s] bIsConnected=[%s] Reason=[%s] Skipping notification for other user"),
 			*EIK_LexToString(LocalUserId), *LobbyId, *LexToString(bIsConnected), *LexToString(Reason));
+		return;
 	}
 
 	EOSVOICECHATUSER_LOG(Log, TEXT("OnLobbyChannelConnectionChanged LobbyId=[%s] bIsConnected=[%s] Reason=[%s]"), *LobbyId, *LexToString(bIsConnected), *LexToString(Reason));
@@ -2217,6 +2213,29 @@ void FEOSVoiceChatUser::OnLobbyChannelConnectionChanged(const EOS_Lobby_RTCRoomC
 		if(ensure(ChannelSession))
 		{
 			ChannelSession->bLobbyChannelConnected = bIsConnected;
+
+			if (bIsConnected)
+			{
+				ApplySendingOptions(*ChannelSession);
+				ApplyReceivingOptions(*ChannelSession);
+				for (TPair<FString, FChannelParticipant>& ChannelParticipantPair : ChannelSession->Participants)
+				{
+					FChannelParticipant& ChannelParticipant = ChannelParticipantPair.Value;
+					if (!ChannelSession->IsLocalUser(ChannelParticipant))
+					{
+						const FGlobalParticipant& GlobalParticipant = GetGlobalParticipant(ChannelParticipant.PlayerName);
+						ApplyPlayerReceivingOptions(GlobalParticipant, *ChannelSession, ChannelParticipant);
+						if (!ChannelParticipant.bParticipantInBlocklist || GlobalParticipant.bBlocked)
+						{
+							ApplyPlayerBlock(GlobalParticipant, *ChannelSession, ChannelParticipant);
+						}
+					}
+				}
+			}
+			else
+			{
+				ChannelSession->ActiveSendingState.bAudioEnabled = false;
+			}
 
 			// TODO fire connection changed delegate
 		}
@@ -2259,33 +2278,46 @@ void FEOSVoiceChatUser::OnChannelParticipantStatusChanged(const EOS_RTC_Particip
 		{
 			if (PlayerName != ChannelSession->PlayerName)
 			{
-				EOSVOICECHATUSER_LOG(Log, TEXT("OnChannelParticipantJoined ChannelName=[%s] PlayerName=[%s]"), *ChannelName, *PlayerName);
-
 				const FGlobalParticipant& GlobalParticipant = GetGlobalParticipant(PlayerName);
-				FChannelParticipant& ChannelParticipant = ChannelSession->Participants.Add(PlayerName);
+				const bool bRtcBlocklisted = CallbackInfo->bParticipantInBlocklist == EOS_TRUE;
+				const bool bNewParticipant = !ChannelSession->Participants.Contains(PlayerName);
+				FChannelParticipant& ChannelParticipant = ChannelSession->Participants.FindOrAdd(PlayerName);
 				ChannelParticipant.PlayerName = PlayerName;
+				ChannelParticipant.bParticipantInBlocklist = bRtcBlocklisted;
 
-				TArray<FVoiceChatMetadataItem> Metadata;
-				for (uint32 i = 0; i < CallbackInfo->ParticipantMetadataCount; ++i)
+				if (bNewParticipant)
 				{
-					FString Key(UTF8_TO_TCHAR(CallbackInfo->ParticipantMetadata[i].Key));
-					FString Value(UTF8_TO_TCHAR(CallbackInfo->ParticipantMetadata[i].Value));
-					Metadata.Emplace(FVoiceChatMetadataItem{ MoveTemp(Key), MoveTemp(Value) });
+					EOSVOICECHATUSER_LOG(Log, TEXT("OnChannelParticipantJoined ChannelName=[%s] PlayerName=[%s] bParticipantInBlocklist=[%s]"), *ChannelName, *PlayerName, *LexToString(bRtcBlocklisted));
+
+					TArray<FVoiceChatMetadataItem> Metadata;
+					for (uint32 i = 0; i < CallbackInfo->ParticipantMetadataCount; ++i)
+					{
+						FString Key(UTF8_TO_TCHAR(CallbackInfo->ParticipantMetadata[i].Key));
+						FString Value(UTF8_TO_TCHAR(CallbackInfo->ParticipantMetadata[i].Value));
+						Metadata.Emplace(FVoiceChatMetadataItem{ MoveTemp(Key), MoveTemp(Value) });
+					}
+					TArray<UEIK_Voice_Subsystem*> Objects;
+					for (TObjectIterator<UEIK_Voice_Subsystem> Itr; Itr; ++Itr)
+					{
+						Objects.Add(*Itr);
+					}
+					if(Objects.Num() > 0 && Objects[0])
+					{
+						Objects[0]->OnPlayerAdded.Broadcast(ChannelName, PlayerName);
+					}
+					OnVoiceChatPlayerAddedDelegate.Broadcast(ChannelName, PlayerName);
+					FEIKVoiceChatDelegates::OnVoiceChatPlayerAddedMetadata.Broadcast(LoginSession.PlayerName, ChannelName, PlayerName, Metadata);
 				}
-				TArray<UEIK_Voice_Subsystem*> Objects;
-				for (TObjectIterator<UEIK_Voice_Subsystem> Itr; Itr; ++Itr)
+				else
 				{
-					Objects.Add(*Itr);
+					EOSVOICECHATUSER_LOG(Log, TEXT("OnChannelParticipantBlocklistUpdated ChannelName=[%s] PlayerName=[%s] bParticipantInBlocklist=[%s]"), *ChannelName, *PlayerName, *LexToString(bRtcBlocklisted));
 				}
-				if(Objects.Num() > 0 && Objects[0])
-				{
-					Objects[0]->OnPlayerAdded.Broadcast(ChannelName, PlayerName);
-				}
-				OnVoiceChatPlayerAddedDelegate.Broadcast(ChannelName, PlayerName);
-				FEIKVoiceChatDelegates::OnVoiceChatPlayerAddedMetadata.Broadcast(LoginSession.PlayerName, ChannelName, PlayerName, Metadata);
 
 				ApplyPlayerReceivingOptions(GlobalParticipant, *ChannelSession, ChannelParticipant);
-				ApplyPlayerBlock(GlobalParticipant, *ChannelSession, ChannelParticipant);
+				if (!bRtcBlocklisted || GlobalParticipant.bBlocked)
+				{
+					ApplyPlayerBlock(GlobalParticipant, *ChannelSession, ChannelParticipant);
+				}
 			}
 		}
 		else

@@ -143,6 +143,8 @@ protected:
 	{
 		// The player id
 		FString PlayerName;
+		// Current EOS/platform blocklist state reported by RTC
+		bool bParticipantInBlocklist = false;
 		// Current talking state
 		bool bTalking = false;
 		// Combined audio mute and isListening state
@@ -165,7 +167,7 @@ protected:
 	struct FSendingState
 	{
 		// Microphone input
-		bool bAudioEnabled = true;
+		bool bAudioEnabled = false;
 	};
 
 	// Representation of a particular channel

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023 Betide Studio. All Rights Reserved.
+// Copyright (c) 2023 Betide Studio. All Rights Reserved.
 
 #pragma once
 
@@ -450,10 +450,15 @@ struct FEIK_Connect_IdToken
 		EOS_Connect_IdToken IdToken;
 		IdToken.ApiVersion = EOS_CONNECT_IDTOKEN_API_LATEST;
 		IdToken.ProductUserId = UserId.GetValueAsEosType();
-		IdToken.JsonWebToken = TCHAR_TO_ANSI(*Token);
+		auto TokenConverter = StringCast<ANSICHAR>(*Token);
+		CachedTokenAnsi.SetNumUninitialized(TokenConverter.Length() + 1);
+		FMemory::Memcpy(CachedTokenAnsi.GetData(), TokenConverter.Get(), TokenConverter.Length() + 1);
+		IdToken.JsonWebToken = CachedTokenAnsi.GetData();
 		return IdToken;
 	}
-	
+
+private:
+	mutable TArray<ANSICHAR> CachedTokenAnsi;
 };
 
 UENUM(BlueprintType)
@@ -758,7 +763,10 @@ struct FEIK_Connect_ExternalAccountInfo
 		ExternalAccountInfo.ProductUserId = UserId.GetValueAsEosType();
 		if(AccountId.Len() > 0)
 		{
-			ExternalAccountInfo.AccountId = TCHAR_TO_ANSI(*AccountId);
+			auto AccountIdConverter = StringCast<ANSICHAR>(*AccountId);
+			CachedAccountIdAnsi.SetNumUninitialized(AccountIdConverter.Length() + 1);
+			FMemory::Memcpy(CachedAccountIdAnsi.GetData(), AccountIdConverter.Get(), AccountIdConverter.Length() + 1);
+			ExternalAccountInfo.AccountId = CachedAccountIdAnsi.GetData();
 		}
 		else
 		{
@@ -766,7 +774,10 @@ struct FEIK_Connect_ExternalAccountInfo
 		}
 		if(DisplayName.Len() > 0)
 		{
-			ExternalAccountInfo.DisplayName = TCHAR_TO_ANSI(*DisplayName);
+			auto DisplayNameConverter = StringCast<ANSICHAR>(*DisplayName);
+			CachedDisplayNameAnsi.SetNumUninitialized(DisplayNameConverter.Length() + 1);
+			FMemory::Memcpy(CachedDisplayNameAnsi.GetData(), DisplayNameConverter.Get(), DisplayNameConverter.Length() + 1);
+			ExternalAccountInfo.DisplayName = CachedDisplayNameAnsi.GetData();
 		}
 		else
 		{
@@ -776,7 +787,10 @@ struct FEIK_Connect_ExternalAccountInfo
 		ExternalAccountInfo.AccountIdType = static_cast<EOS_EExternalAccountType>(AccountType.GetValue());
 		return ExternalAccountInfo;
 	}
-	
+
+private:
+	mutable TArray<ANSICHAR> CachedAccountIdAnsi;
+	mutable TArray<ANSICHAR> CachedDisplayNameAnsi;
 };
 
 
@@ -1168,7 +1182,10 @@ struct FEIK_Auth_Credentials
 		}
 		else
 		{
-			Credentials.Id = TCHAR_TO_ANSI(*Id);
+			auto IdConverter = StringCast<ANSICHAR>(*Id);
+			CachedIdAnsi.SetNumUninitialized(IdConverter.Length() + 1);
+			FMemory::Memcpy(CachedIdAnsi.GetData(), IdConverter.Get(), IdConverter.Length() + 1);
+			Credentials.Id = CachedIdAnsi.GetData();
 		}
 		if(Token.IsEmpty())
 		{
@@ -1176,12 +1193,19 @@ struct FEIK_Auth_Credentials
 		}
 		else
 		{
-			Credentials.Token = TCHAR_TO_ANSI(*Token);
+			auto TokenConverter = StringCast<ANSICHAR>(*Token);
+			CachedTokenAnsi.SetNumUninitialized(TokenConverter.Length() + 1);
+			FMemory::Memcpy(CachedTokenAnsi.GetData(), TokenConverter.Get(), TokenConverter.Length() + 1);
+			Credentials.Token = CachedTokenAnsi.GetData();
 		}
 		Credentials.Type = static_cast<EOS_ELoginCredentialType>(Type.GetValue());
 		Credentials.ExternalType = static_cast<EOS_EExternalCredentialType>(ExternalType.GetValue());
 		return Credentials;
 	}
+
+private:
+	mutable TArray<ANSICHAR> CachedIdAnsi;
+	mutable TArray<ANSICHAR> CachedTokenAnsi;
 };
 
 USTRUCT(BlueprintType)
@@ -1922,10 +1946,16 @@ struct FEIK_Leaderboards_UserScoresQueryStatInfo
 	{
 		EOS_Leaderboards_UserScoresQueryStatInfo UserScoresQueryStatInfo;
 		UserScoresQueryStatInfo.ApiVersion = EOS_LEADERBOARDS_USERSCORESQUERYSTATINFO_API_LATEST;
-		UserScoresQueryStatInfo.StatName = TCHAR_TO_ANSI(*StatName);
+		auto StatNameConverter = StringCast<ANSICHAR>(*StatName);
+		CachedStatNameAnsi.SetNumUninitialized(StatNameConverter.Length() + 1);
+		FMemory::Memcpy(CachedStatNameAnsi.GetData(), StatNameConverter.Get(), StatNameConverter.Length() + 1);
+		UserScoresQueryStatInfo.StatName = CachedStatNameAnsi.GetData();
 		UserScoresQueryStatInfo.Aggregation = static_cast<EOS_ELeaderboardAggregation>(Aggregation.GetValue());
 		return UserScoresQueryStatInfo;
 	}
+
+private:
+	mutable TArray<ANSICHAR> CachedStatNameAnsi;
 };
 
 
@@ -2955,14 +2985,24 @@ struct FEIK_Sessions_AttributeData
 	{
 		EOS_Sessions_AttributeData AttributeData;
 		AttributeData.ApiVersion = EOS_SESSIONS_ATTRIBUTEDATA_API_LATEST;
-		AttributeData.Key = TCHAR_TO_UTF8(*Key);
+		FTCHARToUTF8 KeyConverter(*Key);
+		CachedKeyUtf8.SetNumUninitialized(KeyConverter.Length() + 1);
+		FMemory::Memcpy(CachedKeyUtf8.GetData(), KeyConverter.Get(), KeyConverter.Length() + 1);
+		AttributeData.Key = CachedKeyUtf8.GetData();
 		AttributeData.Value.AsInt64 = ValueAsInt64;
-		AttributeData.Value.AsUtf8 = TCHAR_TO_UTF8(*ValueAsString);
+		FTCHARToUTF8 ValueConverter(*ValueAsString);
+		CachedValueUtf8.SetNumUninitialized(ValueConverter.Length() + 1);
+		FMemory::Memcpy(CachedValueUtf8.GetData(), ValueConverter.Get(), ValueConverter.Length() + 1);
+		AttributeData.Value.AsUtf8 = CachedValueUtf8.GetData();
 		AttributeData.Value.AsBool = bValueAsBool ? EOS_TRUE : EOS_FALSE;
 		AttributeData.Value.AsDouble = ValueAsDouble;
 		AttributeData.ValueType = static_cast<EOS_EAttributeType>(ValueType.GetValue());
 		return AttributeData;
 	}
+
+private:
+	mutable TArray<ANSICHAR> CachedKeyUtf8;
+	mutable TArray<ANSICHAR> CachedValueUtf8;
 };
 
 USTRUCT(BlueprintType)

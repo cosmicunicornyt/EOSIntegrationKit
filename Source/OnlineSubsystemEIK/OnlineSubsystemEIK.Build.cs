@@ -15,6 +15,8 @@ public class OnlineSubsystemEIK : ModuleRules
 		
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+		PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "AntiCheat"));
+
 		PublicDependencyModuleNames.AddRange(
 			new string[] {
 				"OnlineSubsystemUtils"
